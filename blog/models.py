@@ -9,14 +9,14 @@ class Post(models.Model):
     author = models.ForeignKey('auth.User')
     title = models.CharField(max_length=100)
     text = models.TextField(max_length=500)
-    create_date = models.DateTimeField(default=timezone.now())
+    created_date = models.DateTimeField(default=timezone.now)
     published_date = models.DateTimeField(blank=True, null=True)
 
     def publish(self):
         self.published_date = timezone.now()
         self.save()
 
-    def approve_comments(self):
+    def approved_comments(self):
         return self.comments.filter(approved_comment=True)
 
     def get_absolute_url(self):
@@ -30,7 +30,7 @@ class Comment(models.Model):
     post = models.ForeignKey('blog.Post', related_name='comments')
     author = models.CharField(max_length=100)
     text = models.TextField(max_length=500)
-    create_date = models.DateTimeField(default=timezone.now())
+    create_date = models.DateTimeField(default=timezone.now)
     approve_coment = models.BooleanField(default=False)
 
     def approve(self):
