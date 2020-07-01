@@ -1,13 +1,15 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
 from blog.models import Post, Comment
+from django.utils import timezone
 from blog.forms import PostForm, CommentForm
+
+from django.views.generic import (TemplateView, ListView,
+                                  DetailView, CreateView,
+                                  UpdateView, DeleteView)
+
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.decorators import login_required
-from django.utils import timezone
-from django.views.generic import (TemplateView, ListView, DetailView,
-                                  CreateView, UpdateView, DeleteView)
-# Create your views here.
 
 
 class AboutView(TemplateView):
@@ -28,31 +30,38 @@ class PostDetailView(DetailView):
 class CreatePostView(LoginRequiredMixin, CreateView):
     login_url = '/login/'
     redirect_field_name = 'blog/post_detail.html'
+
     form_class = PostForm
+
     model = Post
 
 
 class PostUpdateView(LoginRequiredMixin, UpdateView):
     login_url = '/login/'
     redirect_field_name = 'blog/post_detail.html'
+
     form_class = PostForm
+
     model = Post
 
 
 class DraftListView(LoginRequiredMixin, ListView):
     login_url = '/login/'
     redirect_field_name = 'blog/post_draft_list.html'
+
     model = Post
+
+    def get_queryset(self):
+        return Post.objects.filter(published_date__isnull=True).order_by('created_date')
 
 
 class PostDeleteView(LoginRequiredMixin, DeleteView):
     model = Post
     success_url = reverse_lazy('post_list')
 
-    def get_queryset(self):
-        return Post.objects.filter(published_date__isnull=True).order_by('created_date')
-
-################################
+#######################################
+## Functions that require a pk match ##
+#######################################
 
 
 @login_required
@@ -65,7 +74,7 @@ def post_publish(request, pk):
 @login_required
 def add_comment_to_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    if request.method == 'POST':
+    if request.method == "POST":
         form = CommentForm(request.POST)
         if form.is_valid():
             comment = form.save(commit=False)
